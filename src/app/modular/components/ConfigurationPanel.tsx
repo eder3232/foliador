@@ -16,16 +16,14 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
 import { Settings, Palette, Hash, RotateCcw } from 'lucide-react'
-import { useOrchestrator } from '../context/MachineProvider'
 import type { StateFrom } from 'xstate'
 import { configManagerMachine } from '../store/ConfigManager'
+import { OrchestratorMachineContext } from '../context/MachineProvider'
 
 export const ConfigurationPanel = () => {
-  const actor = useOrchestrator()
-  const state = useSelector(actor, (s) => s) as StateFrom<
-    typeof pdfFolioOrchestrator
-  >
-  const send = actor.send
+  const state = OrchestratorMachineContext.useSelector((s) => s)
+  const actorRef = OrchestratorMachineContext.useActorRef()
+  const send = actorRef.send
 
   // Observar el estado de la máquina configManager
   const configManagerRef = state.context.configManager

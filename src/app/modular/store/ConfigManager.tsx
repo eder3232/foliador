@@ -31,12 +31,15 @@ export const configManagerMachine = setup({
       // Posicionamiento
       cornerVertical: 'top' | 'bottom'
       cornerHorizontal: 'left' | 'right'
-      positionX: number
-      positionY: number
-      rotation: number
-      randomnessX: number
-      randomnessY: number
-      randomnessRotation: number
+      // Posición base: separación fija de 3cm vertical y 4cm horizontal desde la esquina
+      // Estos valores son ajustes adicionales en centímetros desde ese punto base
+      positionX: number // Ajuste horizontal en centímetros desde la posición base
+      positionY: number // Ajuste vertical en centímetros desde la posición base
+      rotation: number // Rotación en grados sexagesimales
+      // Aleatoriedad máxima permitida en centímetros/grados
+      randomnessX: number // Máximo desplazamiento horizontal aleatorio en centímetros
+      randomnessY: number // Máximo desplazamiento vertical aleatorio en centímetros
+      randomnessRotation: number // Máxima rotación aleatoria en grados sexagesimales
       // Apariencia
       color: string
       transparency: number
@@ -197,7 +200,7 @@ export const configManagerMachine = setup({
     }),
     resetConfig: assign({
       // Reset a valores por defecto
-      cornerVertical: 'bottom',
+      cornerVertical: 'top',
       cornerHorizontal: 'right',
       positionX: 0,
       positionY: 0,
@@ -219,7 +222,7 @@ export const configManagerMachine = setup({
   initial: 'ready',
   context: {
     // Valores por defecto
-    cornerVertical: 'bottom',
+    cornerVertical: 'top',
     cornerHorizontal: 'right',
     positionX: 0,
     positionY: 0,
@@ -228,7 +231,7 @@ export const configManagerMachine = setup({
     randomnessY: 0,
     randomnessRotation: 0,
     color: '#000000',
-    transparency: 100,
+    transparency: 0,
     fontSize: 12,
     startNumber: 1,
     direction: 'first',

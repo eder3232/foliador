@@ -1,3 +1,4 @@
+'use client'
 import { assign, fromPromise, setup } from 'xstate'
 
 export const previewManagerMachine = setup({

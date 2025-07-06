@@ -1,9 +1,7 @@
 'use client'
 
-import { useSelector } from '@xstate/react'
-import { useOrchestrator } from '../context/MachineProvider'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
@@ -11,29 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle, FileText, Upload } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import type { StateFrom } from 'xstate'
-import { fileManagerMachine } from '../store/FileManager'
-import { pdfFolioOrchestrator } from '../store/Orchestrator'
+import { OrchestratorMachineContext } from '../context/MachineProvider'
 
 export const FileUpload = () => {
-  const actor = useOrchestrator()
-  const state = useSelector(actor, (s) => s) as StateFrom<
-    typeof pdfFolioOrchestrator
-  >
-  const fileManagerRef = state.context.fileManager
-  const fileState = useSelector(
-    fileManagerRef!,
-    (snapshot) => snapshot
-  ) as StateFrom<typeof fileManagerMachine>
+  const state = OrchestratorMachineContext.useSelector((s) => s)
+  const actorRef = OrchestratorMachineContext.useActorRef()
+  const send = actorRef.send
 
+  const fileState = state.context.fileManager?.getSnapshot()
   // Dropzone config
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (file) {
-      actor.send({ type: 'fileManager.UPLOAD_FILE', file })
+      send({ type: 'fileManager.UPLOAD_FILE', file })
     }
   }
 

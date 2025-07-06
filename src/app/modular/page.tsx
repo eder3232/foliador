@@ -1,44 +1,65 @@
 'use client'
 
-import { FileUpload } from './components/FileUpload'
 import { ConfigurationPanel } from './components/ConfigurationPanel'
-import { useSelector } from '@xstate/react'
-import { useOrchestrator } from './context/MachineProvider'
-import type { StateFrom } from 'xstate'
-import { pdfFolioOrchestrator } from './store/Orchestrator'
+import { FileUpload } from './components/FileUpload'
+import { OrchestratorMachineContext } from './context/MachineProvider'
+import { PdfPreview } from './components/PreviewPdf'
+import { firmarPdf } from './utils/pdf-foliador'
 
 const Page = () => {
-  const actor = useOrchestrator()
-  const state = useSelector(actor, (s) => s) as StateFrom<
-    typeof pdfFolioOrchestrator
-  >
-  const send = actor.send
+  const state = OrchestratorMachineContext.useSelector((s) => s)
+  const actorRef = OrchestratorMachineContext.useActorRef()
+  const send = actorRef.send
+
+  console.log('state', state.context.error)
+
+  const handleDownload = async () => {
+    if (!state.context.file) return
+
+    try {
+      const config = state.context.configManager?.getSnapshot().context
+      if (!config) {
+        console.error('No hay configuración disponible')
+        return
+      }
+
+      const signedPdf = await firmarPdf(state.context.file, config)
+
+      // Crear blob y descargar
+      const blob = new Blob([signedPdf], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'pdf-foliado.pdf'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error al firmar PDF:', error)
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto py-8 space-y-8">
       {/* Estado: idle o uploading: solo carga de archivo */}
       {(state.matches('idle') || state.matches('uploading')) && <FileUpload />}
 
-      {/* Estado: configurando, previewing, ready, processing, completed: mostrar panel de configuración */}
-      {(state.matches('configuring') ||
-        state.matches('previewing') ||
-        state.matches('ready') ||
-        state.matches('processing') ||
-        state.matches('completed')) && <ConfigurationPanel />}
+      {/* Estado: configurando, ready: mostrar panel de configuración */}
+      {(state.matches('configuring') || state.matches('ready')) && (
+        <ConfigurationPanel />
+      )}
 
-      {/* Estado: ready o completed: mostrar botón para procesar o descargar */}
+      {/* Previsualización PDF si hay archivo */}
+      {(state.matches('configuring') || state.matches('ready')) && (
+        <PdfPreview />
+      )}
+
+      {/* Estado: ready: mostrar botón para descargar */}
       {state.matches('ready') && (
         <button
-          className="w-full py-2 px-4 bg-primary text-white rounded"
-          onClick={() => send({ type: 'START_PROCESS' })}
-        >
-          Procesar PDF
-        </button>
-      )}
-      {state.matches('completed') && (
-        <button
           className="w-full py-2 px-4 bg-green-600 text-white rounded"
-          onClick={() => send({ type: 'DOWNLOAD' })}
+          onClick={handleDownload}
         >
           Descargar PDF foliado
         </button>
